@@ -21,29 +21,31 @@ border:none;
 width:80%;
 }
 
-#aparatos button{
-width:45%;
-font-size:16px;
+table{
+width:95%;
+margin:auto;
+border-collapse:collapse;
+background:white;
+color:black;
 }
 
-.rutina{
-margin:20px;
-text-align:left;
-}
-
-.linea{
-background:#1a1a1a;
-margin:8px;
+th{
+background:#111;
+color:white;
 padding:10px;
-border-radius:10px;
+}
+
+td{
+border:1px solid #ccc;
+padding:8px;
+font-size:14px;
 }
 
 .nota{
 background:#00aa55;
-margin:12px;
+margin:15px;
 padding:15px;
 border-radius:12px;
-font-size:20px;
+font-size:22px;
 font-weight:bold;
-text-align:center;
 }
