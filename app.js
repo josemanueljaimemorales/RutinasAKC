@@ -1,60 +1,79 @@
-let baseData=[], npData=[];
+let data = [];
+let NP = {};
 
-async function init(){
-try{
-const res=await fetch('archivo_convertido.xlsx');
-const buf=await res.arrayBuffer();
-const wb=XLSX.read(buf);
+const screen = document.getElementById("screen");
 
-baseData=XLSX.utils.sheet_to_json(wb.Sheets['BASEAPPRUTINAS'],{defval:''});
-npData=XLSX.utils.sheet_to_json(wb.Sheets['NP'],{defval:''});
+async function loadExcel() {
+    const res = await fetch("Excel_Solo_Valores.xlsx");
+    const buffer = await res.arrayBuffer();
+    const wb = XLSX.read(buffer);
 
-menu();
-}catch(e){
-document.getElementById('app').innerHTML="ERROR cargando Excel";
-console.error(e);
-}
-}
+    const base = XLSX.utils.sheet_to_json(wb.Sheets["BASEAPPRUTINAS"]);
+    const npSheet = XLSX.utils.sheet_to_json(wb.Sheets["NP"]);
 
-function menu(){
-let atletas=[...new Set(baseData.map(r=>r.Atleta))];
-document.getElementById('app').innerHTML=
-atletas.map(a=>`<button class="btn" onclick="aparatos('${a}')">${a}</button>`).join('');
+    npSheet.forEach(r => {
+        const name = r["NOMBRE"];
+        NP[name] = r;
+    });
+
+    data = base;
+    showAthletes();
 }
 
-function aparatos(a){
-let aps=[...new Set(baseData.filter(r=>r.Atleta===a).map(r=>r.Aparato))];
-document.getElementById('app').innerHTML=
-`<button class="back" onclick="menu()">⬅</button>`+
-aps.map(ap=>`<button class="btn" onclick="rutina('${a}','${ap}')">${ap}</button>`).join('');
+function showAthletes(){
+    const athletes = [...new Set(data.map(d => d["ATLETA"]))];
+
+    screen.innerHTML = "";
+    athletes.forEach(a=>{
+        screen.innerHTML += `<div class="button" onclick="showAparatos('${a}')">${a}</div>`;
+    });
 }
 
-function getNP(atleta, aparato){
-let row=npData.find(r=>r.Nombre===atleta || r.Atleta===atleta);
-if(!row) return "";
-return row[aparato] || "";
+function showAparatos(name){
+    const aparatos = [...new Set(data.filter(d=>d["ATLETA"]===name).map(d=>d["APARATO"]))];
+
+    screen.innerHTML = `<div class="back" onclick="showAthletes()">⬅️</div>`;
+
+    aparatos.forEach(ap=>{
+        screen.innerHTML += `<div class="button" onclick="showRutina('${name}','${ap}')">${ap}</div>`;
+    });
 }
 
-function rutina(a,ap){
-let lista=baseData.filter(r=>r.Atleta===a && r.Aparato===ap);
-let np=getNP(a,ap);
-
-document.getElementById('app').innerHTML=`
-<button class="back" onclick="aparatos('${a}')">⬅</button>
-<div class="title">${a} - ${ap}</div>
-<div class="title">NP: ${np}</div>
-
-<table class="table">
-<tr><th>Elemento</th><th>ID</th><th>Grupo</th><th>Valor</th><th>VD</th></tr>
-${lista.map(r=>`<tr>
-<td>${r.Elemento}</td>
-<td>${r.ID}</td>
-<td>${r.Grupo}</td>
-<td>${r.Valor}</td>
-<td>${r.VD || r["Valor Decimal"]}</td>
-</tr>`).join('')}
-</table>
-`;
+function mapAparato(ap){
+    if(ap==="ARZON") return "HONGO A";
+    return ap;
 }
 
-init();
+function showRutina(name, aparato){
+    const rutina = data.filter(d=>d["ATLETA"]===name && d["APARATO"]===aparato);
+
+    const npValue = NP[name] ? NP[name][mapAparato(aparato)] : "";
+
+    let html = `<div class="back" onclick="showAparatos('${name}')">⬅️</div>`;
+    html += `<h2>${name} - ${aparato}</h2>`;
+    html += `<div class="np">Nota de partida: ${npValue || "-"}</div>`;
+
+    html += `<table class="table">
+    <tr>
+        <th>Elemento</th>
+        <th>ID</th>
+        <th>Grupo</th>
+        <th>Valor</th>
+        <th>VD</th>
+    </tr>`;
+
+    rutina.forEach(r=>{
+        html += `<tr>
+            <td>${r["ELEMENTO"] || ""}</td>
+            <td>${r["NÚM DE ID"] || ""}</td>
+            <td>${r["GRUPO"] || ""}</td>
+            <td>${r["VALOR"] || ""}</td>
+            <td>${r["Valor decimal"] || ""}</td>
+        </tr>`;
+    });
+
+    html += `</table>`;
+    screen.innerHTML = html;
+}
+
+loadExcel();
