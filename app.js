@@ -87,7 +87,7 @@ screen.innerHTML = html;
 }
 
 function showObligatorios(){
-const names = OBL.map(r=>r["NOMBRE"]);
+const names = OBL.map(r=>r[Object.keys(r)[0]]);
 screen.innerHTML = `<div class="back" onclick="showHome()">⬅️</div>`;
 names.forEach(n=>{
 screen.innerHTML += `<div class="button" onclick="showObligatorioDetalle('${n}')">${n}</div>`;
@@ -95,7 +95,13 @@ screen.innerHTML += `<div class="button" onclick="showObligatorioDetalle('${n}')
 }
 
 function showObligatorioDetalle(name){
-const r = OBL.find(x=>x["NOMBRE"]===name);
+const r = OBL.find(x=>x[Object.keys(x)[0]]===name);
+
+const hongoKey = Object.keys(r).find(k =>
+k.toUpperCase().includes("HONGO") || k.toUpperCase().includes("ARZON")
+);
+
+const hongoValue = hongoKey ? r[hongoKey] : "-";
 
 let html = `<div class="back" onclick="showObligatorios()">⬅️</div>`;
 html += `<h2>${name}</h2>`;
@@ -104,7 +110,7 @@ html += `<div class="np">Nivel: ${r["NIVEL"]}</div>`;
 html += `<table class="table">
 <tr><th>Aparato</th><th>Nota</th></tr>
 <tr><td>Piso</td><td>${r["PISO"]}</td></tr>
-<tr><td>Hongo</td><td>${r["HONGO A"]}</td></tr>
+<tr><td>Hongo</td><td>${hongoValue}</td></tr>
 <tr><td>Anillo</td><td>${r["ANILLO"]}</td></tr>
 <tr><td>Salto</td><td>${r["SALTO"]}</td></tr>
 <tr><td>Paralela</td><td>${r["PARALELA"]}</td></tr>
