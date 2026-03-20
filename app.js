@@ -1,120 +1,55 @@
-let workbook;
-let atletas = [];
-let datos = {};
-let NP = {};
+let data=[], NP=[];
 
-const app = document.getElementById("app");
+async function init(){
+const res=await fetch('archivo_convertido.xlsx');
+const buf=await res.arrayBuffer();
+const wb=XLSX.read(buf);
 
-document.getElementById("fileInput").addEventListener("change", function(e){
-  const file = e.target.files[0];
-  const reader = new FileReader();
+data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+NP=XLSX.utils.sheet_to_json(wb.Sheets['NP'],{defval:''});
 
-  reader.onload = function(e) {
-    const data = new Uint8Array(e.target.result);
-    workbook = XLSX.read(data, { type: "array" });
-
-    procesar();
-    pantallaAtletas();
-  };
-
-  reader.readAsArrayBuffer(file);
-});
-
-function procesar() {
-  atletas = [];
-  datos = {};
-  NP = {};
-
-  workbook.SheetNames.forEach(nombre => {
-    const hoja = workbook.Sheets[nombre];
-    const json = XLSX.utils.sheet_to_json(hoja, { defval: "" });
-
-    const nombreLower = nombre.toLowerCase();
-
-    if (nombreLower.includes("np")) {
-      json.forEach(r => {
-        const atleta = r["Nombre"] || r["Atleta"];
-        const aparato = r["Aparato"];
-        const nota = r["Nota"] || r["NP"];
-
-        if (!NP[atleta]) NP[atleta] = {};
-        NP[atleta][aparato] = nota;
-      });
-      return;
-    }
-
-    if (nombreLower.includes("concentrado")) return;
-
-    atletas.push(nombre);
-    datos[nombre] = json;
-  });
+menu();
 }
 
-function pantallaAtletas() {
-  app.innerHTML = "<h2>ATLETAS</h2>";
-
-  atletas.forEach(a => {
-    const btn = document.createElement("button");
-    btn.textContent = a;
-    btn.onclick = () => pantallaAparatos(a);
-    app.appendChild(btn);
-  });
+function menu(){
+let atletas=[...new Set(data.map(r=>r.Atleta))];
+document.getElementById('app').innerHTML=
+atletas.map(a=>`<button class="btn" onclick="aparatos('${a}')">${a}</button>`).join('');
 }
 
-function pantallaAparatos(atleta) {
-  const aparatos = ["Piso","Arzón","Anillos","Salto","Paralela","Fija"];
-
-  app.innerHTML = `<h2>${atleta}</h2>`;
-
-  aparatos.forEach(ap => {
-    const btn = document.createElement("button");
-    btn.textContent = ap;
-    btn.onclick = () => pantallaRutina(atleta, ap);
-    app.appendChild(btn);
-  });
-
-  volver(pantallaAtletas);
+function aparatos(a){
+let aps=[...new Set(data.filter(r=>r.Atleta===a).map(r=>r.Aparato))];
+document.getElementById('app').innerHTML=
+`<button class="back" onclick="menu()">⬅</button>`+
+aps.map(ap=>`<button class="btn" onclick="rutina('${a}','${ap}')">${ap}</button>`).join('');
 }
 
-function pantallaRutina(atleta, aparato) {
-  const lista = datos[atleta] || [];
-
-  const rutina = lista.filter(r =>
-    (r["Aparato"] || "").toLowerCase() === aparato.toLowerCase()
-  );
-
-  app.innerHTML = `<h2>${atleta} - ${aparato}</h2>`;
-
-  rutina.forEach(e => {
-    const card = document.createElement("div");
-    card.className = "card";
-
-    card.innerHTML = `
-      <b>${e["Elemento"] || e["Nombre"] || ""}</b><br>
-      ID: ${e["ID Elemento"] || ""}<br>
-      Grupo: ${e["Grupo"] || ""}<br>
-      Valor: ${e["Valor"] || ""}<br>
-      Decimal: ${e["Valor Decimal"] || ""}
-    `;
-
-    app.appendChild(card);
-  });
-
-  const nota = NP[atleta]?.[aparato] || "N/A";
-
-  const np = document.createElement("div");
-  np.className = "np";
-  np.textContent = "Nota de Partida: " + nota;
-
-  app.appendChild(np);
-
-  volver(() => pantallaAparatos(atleta));
+function getNP(atleta, aparato){
+let row=NP.find(r=>r.Nombre===atleta || r.Atleta===atleta);
+if(!row) return "";
+return row[aparato] || "";
 }
 
-function volver(fn) {
-  const btn = document.createElement("button");
-  btn.textContent = "⬅ Volver";
-  btn.onclick = fn;
-  app.appendChild(document.createElement("br"));
-  app.appendChild(btn);
+function rutina(a,ap){
+let lista=data.filter(r=>r.Atleta===a && r.Aparato===ap);
+let np=getNP(a,ap);
+
+document.getElementById('app').innerHTML=`
+<button class="back" onclick="aparatos('${a}')">⬅</button>
+<div class="title">${a} - ${ap}</div>
+<div class="title">Nota de partida: ${np}</div>
+
+<table class="table">
+<tr><th>Elemento</th><th>ID</th><th>Grupo</th><th>Valor</th><th>VD</th></tr>
+${lista.map(r=>`<tr>
+<td>${r.Elemento}</td>
+<td>${r.ID}</td>
+<td>${r.Grupo}</td>
+<td>${r.Valor}</td>
+<td>${r.VD || r["Valor Decimal"]}</td>
+</tr>`).join('')}
+</table>
+`;
 }
+
+init();
