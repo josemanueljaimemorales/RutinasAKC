@@ -1,99 +1,67 @@
-let workbook;
-let currentAthlete = "";
-let currentSheet;
+let wb;
 
 async function init(){
-  const res = await fetch('Rutinas a presentar 2026.xlsx');
-  const buffer = await res.arrayBuffer();
-  workbook = XLSX.read(buffer);
-
-  showAthletes();
+const res=await fetch('Rutinas a presentar 2026.xlsx');
+const buf=await res.arrayBuffer();
+wb=XLSX.read(buf);
+renderHome();
 }
 
-function showAthletes(){
-  let html = "<h2>Atletas</h2>";
-
-  workbook.SheetNames.forEach((name,i)=>{
-    if(i===0) return;
-    if(name.toLowerCase().includes("np")) return;
-    if(name.toLowerCase().includes("concentrado")) return;
-
-    html += `<button onclick="selectAthlete('${name}')">${name}</button>`;
-  });
-
-  document.getElementById("screen").innerHTML = html;
+function renderHome(){
+let names=wb.SheetNames.slice(1,-2);
+document.getElementById('app').innerHTML=
+names.map(n=>`<button class="btn" onclick="renderAparatos('${n}')">${n}</button>`).join('');
 }
 
-function selectAthlete(name){
-  currentAthlete = name;
-  currentSheet = workbook.Sheets[name];
-
-  let html = `<h2>${name}</h2>
-  <button onclick="showApp('PISO')">Piso</button>
-  <button onclick="showApp('ARZON')">Arzón</button>
-  <button onclick="showApp('ANILLOS')">Anillos</button>
-  <button onclick="showApp('SALTO')">Salto</button>
-  <button onclick="showApp('PARALELAS')">Paralelas</button>
-  <button onclick="showApp('BARRA')">Barra</button>
-  <br><button onclick="showAthletes()">⬅ Regresar</button>
-  `;
-
-  document.getElementById("screen").innerHTML = html;
+function header(title){
+return `<div class="header"><button class="back" onclick="renderHome()">⬅</button><div>${title}</div><div></div></div>`;
 }
 
-function showApp(aparato){
-  let rows = XLSX.utils.sheet_to_json(currentSheet, {header:1});
-  let data = [];
-  let capturing = false;
+function renderAparatos(name){
+let aparatos=["PISO","ARZON","ANILLOS","SALTO","PARALELAS","BARRA","BARRA FIJA","FIJA"];
+document.getElementById('app').innerHTML=
+header(name)+aparatos.map(a=>`<button class="btn" onclick="renderRutina('${name}','${a}')">${a}</button>`).join('');
+}
 
-  rows.forEach(r=>{
-    let txt = (r.join(" ")||"").toUpperCase();
+function renderRutina(name, aparato){
+let sheet=wb.Sheets[name];
+let data=XLSX.utils.sheet_to_json(sheet,{header:1});
 
-    if(txt.includes(aparato)){
-      capturing = true;
-      return;
-    }
+let start=-1,end=data.length;
 
-    if(capturing){
-      if(txt.includes("NOTA") || txt.includes("TOTAL")){
-        data.push({nota: r.join(" ")});
-        capturing = false;
-      } else if(r.length > 2){
-        data.push({
-          nombre: r[0] || "",
-          grupo: r[2] || "",
-          valor: r[3] || "",
-          extra: r[4] || ""
-        });
-      }
-    }
-  });
+for(let i=0;i<data.length;i++){
+let row=(data[i][0]||"").toString().toUpperCase();
+if(row.includes(aparato)){start=i;}
+else if(start!=-1 && row.match(/PISO|ARZON|ANILLOS|SALTO|PARALELAS|BARRA|FIJA/)){end=i;break;}
+}
 
-  let html = `<h2>${aparato}</h2>`;
+if(start==-1){document.getElementById('app').innerHTML=header(name)+"No encontrado";return;}
 
-  let nota = data.find(d=>d.nota);
-  if(nota){
-    html += `<div class="nota">${nota.nota}</div>`;
-  }
+let bloque=data.slice(start+1,end);
 
-  html += `<table>
-  <tr><th>Elemento</th><th>Grupo</th><th>Valor</th><th>Extra</th></tr>`;
+let table=`<table class="table">
+<tr><th>Elemento</th><th>Grupo</th><th>Valor</th></tr>`;
 
-  data.forEach(d=>{
-    if(!d.nota){
-      html += `<tr>
-      <td>${d.nombre}</td>
-      <td>${d.grupo}</td>
-      <td>${d.valor}</td>
-      <td>${d.extra}</td>
-      </tr>`;
-    }
-  });
+bloque.forEach(r=>{
+if(r[0]){
+table+=`<tr><td>${r[0]}</td><td>${r[1]||''}</td><td>${r[2]||''}</td></tr>`;
+}
+});
 
-  html += `</table>
-  <br><button onclick="selectAthlete('${currentAthlete}')">⬅ Regresar</button>`;
+table+="</table>";
 
-  document.getElementById("screen").innerHTML = html;
+let nota="";
+
+bloque.forEach(r=>{
+if((r[0]||"").toString().toUpperCase().includes("NOTA")){
+nota=r[1]||"";
+}
+});
+
+document.getElementById('app').innerHTML=
+header(name+" - "+aparato)+
+`<div class="nota">Nota: ${nota}</div>`+
+table;
 }
 
 init();
