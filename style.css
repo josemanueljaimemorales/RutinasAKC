@@ -4,6 +4,7 @@ body{background:#0b0b0b;color:#fff;font-family:Arial;margin:0;text-align:center}
 .header{display:flex;justify-content:space-between;padding:10px}
 .back{background:#222;padding:10px;border-radius:10px}
 .table{width:95%;margin:10px auto;border-collapse:collapse}
-.table th{background:#333;padding:8px}
-.table td{padding:6px;border-bottom:1px solid #222}
-.nota{font-size:22px;color:#00ff88;margin:10px}
+.table th{background:#444;color:#fff;padding:10px}
+.table td{padding:8px;border-bottom:1px solid #222;background:#111}
+.np{background:#ff3b3b;color:#fff;padding:12px;margin:10px;border-radius:10px;font-size:20px}
+.nf{background:#00c853;color:#fff;padding:12px;margin:10px;border-radius:10px;font-size:20px}

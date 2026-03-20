@@ -7,60 +7,73 @@ wb=XLSX.read(buf);
 renderHome();
 }
 
+function header(t){return `<div class="header"><button class="back" onclick="renderHome()">⬅</button><div>${t}</div><div></div></div>`;}
+
 function renderHome(){
 let names=wb.SheetNames.slice(1,-2);
 document.getElementById('app').innerHTML=
 names.map(n=>`<button class="btn" onclick="renderAparatos('${n}')">${n}</button>`).join('');
 }
 
-function header(title){
-return `<div class="header"><button class="back" onclick="renderHome()">⬅</button><div>${title}</div><div></div></div>`;
-}
-
 function renderAparatos(name){
-let aparatos=["PISO","ARZON","ANILLOS","SALTO","PARALELAS","BARRA","BARRA FIJA","FIJA"];
+let aparatos=["PISO","ARZON","ANILLOS","SALTO","PARALELAS","FIJA"];
 document.getElementById('app').innerHTML=
 header(name)+aparatos.map(a=>`<button class="btn" onclick="renderRutina('${name}','${a}')">${a}</button>`).join('');
 }
 
 function renderRutina(name, aparato){
 let sheet=wb.Sheets[name];
-let data=XLSX.utils.sheet_to_json(sheet,{header:1});
+let rows=XLSX.utils.sheet_to_json(sheet,{header:1});
 
-let start=-1,end=data.length;
+let start=-1,end=rows.length;
 
-for(let i=0;i<data.length;i++){
-let row=(data[i][0]||"").toString().toUpperCase();
-if(row.includes(aparato)){start=i;}
-else if(start!=-1 && row.match(/PISO|ARZON|ANILLOS|SALTO|PARALELAS|BARRA|FIJA/)){end=i;break;}
+for(let i=0;i<rows.length;i++){
+let txt=(rows[i][0]||"").toString().toUpperCase();
+if(txt.includes(aparato)){start=i;}
+else if(start!=-1 && txt.match(/PISO|ARZON|ANILLOS|SALTO|PARALELAS|FIJA/)){end=i;break;}
 }
 
 if(start==-1){document.getElementById('app').innerHTML=header(name)+"No encontrado";return;}
 
-let bloque=data.slice(start+1,end);
+let bloque=rows.slice(start,end);
+
+// detectar encabezados
+let headerRow=bloque.find(r=>r.includes("NOMBRE"));
+let idxNombre=headerRow.indexOf("NOMBRE");
+let idxID=headerRow.indexOf("NÚM DE ID");
+let idxGrupo=headerRow.indexOf("GRUPO");
+let idxValor=headerRow.indexOf("VALOR");
+let idxDecimal=headerRow.indexOf("Valor decimal");
 
 let table=`<table class="table">
-<tr><th>Elemento</th><th>Grupo</th><th>Valor</th></tr>`;
+<tr><th>Elemento</th><th>ID</th><th>Grupo</th><th>Valor</th><th>Decimal</th></tr>`;
 
 bloque.forEach(r=>{
-if(r[0]){
-table+=`<tr><td>${r[0]}</td><td>${r[1]||''}</td><td>${r[2]||''}</td></tr>`;
+if(r[idxNombre] && r[idxNombre]!="NOMBRE"){
+table+=`<tr>
+<td>${r[idxNombre]||""}</td>
+<td>${r[idxID]||""}</td>
+<td>${r[idxGrupo]||""}</td>
+<td>${r[idxValor]||""}</td>
+<td>${r[idxDecimal]||""}</td>
+</tr>`;
 }
 });
 
 table+="</table>";
 
-let nota="";
-
-bloque.forEach(r=>{
-if((r[0]||"").toString().toUpperCase().includes("NOTA")){
-nota=r[1]||"";
-}
+// buscar NP y NF
+let np="",nf="";
+rows.forEach(r=>{
+let txt=(r.join(" ")||"").toUpperCase();
+if(txt.includes("NP")) np=r[ r.length-1 ];
+if(txt.includes("PROBABLE")) nf=r[ r.length-1 ];
 });
 
 document.getElementById('app').innerHTML=
 header(name+" - "+aparato)+
-`<div class="nota">Nota: ${nota}</div>`+
+`<div class="np">NP: ${np}</div>`+
+`<div class="nf">Nota Final: ${nf}</div>`+
 table;
 }
 
