@@ -1,9 +1,8 @@
-body{background:#0b0b0b;color:#fff;font-family:Arial;margin:0;text-align:center}
-.logo{width:120px;margin:15px auto}
-.btn{display:block;width:85%;margin:10px auto;padding:18px;border-radius:16px;background:#1c1c1c;color:#fff;border:none;font-size:18px}
-.header{display:flex;justify-content:space-between;padding:10px}
-.back{background:#222;padding:10px;border-radius:10px}
-.table{width:95%;margin:10px auto;border-collapse:collapse}
-.table th{background:#333;padding:10px}
-.table td{padding:8px;border-bottom:1px solid #222}
-.np{background:#ff3b3b;padding:10px;border-radius:10px;margin:10px}
+body{background:#0b0b0b;color:#fff;font-family:Arial;margin:0}
+.logo{width:120px;display:block;margin:10px auto}
+.btn{display:block;width:90%;margin:10px auto;padding:18px;border-radius:16px;background:#1c1c1c;color:#fff;border:none;font-size:18px}
+.back{margin:10px;padding:10px;border-radius:10px;background:#222}
+.table{width:95%;margin:auto;border-collapse:collapse}
+.table th{background:#222;padding:10px}
+.table td{padding:8px;border-bottom:1px solid #333}
+.title{text-align:center;font-size:22px;margin:10px}
