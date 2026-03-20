@@ -1,7 +1,7 @@
 let workbook;
 let atletas = [];
-let datosRutinas = {};
-let notasPartida = {};
+let datos = {};
+let NP = {};
 
 const app = document.getElementById("app");
 
@@ -12,54 +12,56 @@ document.getElementById("fileInput").addEventListener("change", function(e){
   reader.onload = function(e) {
     const data = new Uint8Array(e.target.result);
     workbook = XLSX.read(data, { type: "array" });
-    procesarDatos();
-    mostrarAtletas();
+
+    procesar();
+    pantallaAtletas();
   };
 
   reader.readAsArrayBuffer(file);
 });
 
-function procesarDatos() {
+function procesar() {
   atletas = [];
-  datosRutinas = {};
-  notasPartida = {};
+  datos = {};
+  NP = {};
 
   workbook.SheetNames.forEach(nombre => {
     const hoja = workbook.Sheets[nombre];
     const json = XLSX.utils.sheet_to_json(hoja, { defval: "" });
 
-    datosRutinas[nombre] = json;
+    const nombreLower = nombre.toLowerCase();
 
-    if (nombre.toLowerCase().includes("np")) {
-      json.forEach(row => {
-        const atleta = row["Nombre"];
-        const aparato = row["Aparato"];
-        const nota = row["Nota"];
+    if (nombreLower.includes("np")) {
+      json.forEach(r => {
+        const atleta = r["Nombre"] || r["Atleta"];
+        const aparato = r["Aparato"];
+        const nota = r["Nota"] || r["NP"];
 
-        if (!notasPartida[atleta]) notasPartida[atleta] = {};
-        notasPartida[atleta][aparato] = nota;
+        if (!NP[atleta]) NP[atleta] = {};
+        NP[atleta][aparato] = nota;
       });
+      return;
     }
 
-    if (!nombre.toLowerCase().includes("np") &&
-        !nombre.toLowerCase().includes("concentrado")) {
-      atletas.push(nombre);
-    }
+    if (nombreLower.includes("concentrado")) return;
+
+    atletas.push(nombre);
+    datos[nombre] = json;
   });
 }
 
-function mostrarAtletas() {
-  app.innerHTML = "<h2>Atletas</h2>";
+function pantallaAtletas() {
+  app.innerHTML = "<h2>ATLETAS</h2>";
 
-  atletas.forEach(atleta => {
+  atletas.forEach(a => {
     const btn = document.createElement("button");
-    btn.textContent = atleta;
-    btn.onclick = () => mostrarAparatos(atleta);
+    btn.textContent = a;
+    btn.onclick = () => pantallaAparatos(a);
     app.appendChild(btn);
   });
 }
 
-function mostrarAparatos(atleta) {
+function pantallaAparatos(atleta) {
   const aparatos = ["Piso","Arzón","Anillos","Salto","Paralela","Fija"];
 
   app.innerHTML = `<h2>${atleta}</h2>`;
@@ -67,47 +69,49 @@ function mostrarAparatos(atleta) {
   aparatos.forEach(ap => {
     const btn = document.createElement("button");
     btn.textContent = ap;
-    btn.onclick = () => mostrarRutina(atleta, ap);
+    btn.onclick = () => pantallaRutina(atleta, ap);
     app.appendChild(btn);
   });
 
-  crearBotonVolver(mostrarAtletas);
+  volver(pantallaAtletas);
 }
 
-function mostrarRutina(atleta, aparato) {
-  const data = datosRutinas[atleta];
+function pantallaRutina(atleta, aparato) {
+  const lista = datos[atleta] || [];
 
-  app.innerHTML = `<h2>${atleta} - ${aparato}</h2>`;
-
-  const rutina = data.filter(r =>
+  const rutina = lista.filter(r =>
     (r["Aparato"] || "").toLowerCase() === aparato.toLowerCase()
   );
 
-  rutina.forEach(elem => {
+  app.innerHTML = `<h2>${atleta} - ${aparato}</h2>`;
+
+  rutina.forEach(e => {
     const card = document.createElement("div");
     card.className = "card";
 
     card.innerHTML = `
-      <b>${elem["Elemento"] || ""}</b><br>
-      ID: ${elem["ID Elemento"] || ""}<br>
-      Grupo: ${elem["Grupo"] || ""}<br>
-      Valor: ${elem["Valor"] || ""}<br>
-      Decimal: ${elem["Valor Decimal"] || ""}
+      <b>${e["Elemento"] || e["Nombre"] || ""}</b><br>
+      ID: ${e["ID Elemento"] || ""}<br>
+      Grupo: ${e["Grupo"] || ""}<br>
+      Valor: ${e["Valor"] || ""}<br>
+      Decimal: ${e["Valor Decimal"] || ""}
     `;
 
     app.appendChild(card);
   });
 
-  const nota = notasPartida[atleta]?.[aparato] || "N/A";
+  const nota = NP[atleta]?.[aparato] || "N/A";
 
-  const np = document.createElement("h3");
-  np.textContent = "Nota de partida: " + nota;
+  const np = document.createElement("div");
+  np.className = "np";
+  np.textContent = "Nota de Partida: " + nota;
+
   app.appendChild(np);
 
-  crearBotonVolver(() => mostrarAparatos(atleta));
+  volver(() => pantallaAparatos(atleta));
 }
 
-function crearBotonVolver(fn) {
+function volver(fn) {
   const btn = document.createElement("button");
   btn.textContent = "⬅ Volver";
   btn.onclick = fn;
