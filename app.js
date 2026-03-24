@@ -47,7 +47,7 @@ screen.innerHTML += `<div class="button" onclick="showRutina('${name}','${ap}')"
 
 function mapAparato(ap){
 ap=ap.toUpperCase();
-if(ap==="ARZON") return "HONGO A";
+if(ap==="ARZON") return "ARZON";
 if(ap==="PARALELAS") return "PARALELA";
 if(ap==="ANILLOS") return "ANILLO";
 return ap;
@@ -57,8 +57,11 @@ function getNP(name, aparato){
 const row = NP[name.toUpperCase()];
 if(!row) return "";
 const key = mapAparato(aparato);
-const col = Object.keys(row).find(c=>c.toUpperCase().trim()===key);
-return col?row[col]:"";
+const col = Object.keys(row).find(c=>c.toUpperCase().includes(key));
+if(!col) return "";
+let val = row[col];
+if(!isNaN(val)) return parseFloat(val).toFixed(3);
+return val;
 }
 
 function showRutina(name, aparato){
