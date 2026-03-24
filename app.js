@@ -60,7 +60,7 @@ const key = mapAparato(aparato);
 const col = Object.keys(row).find(c=>c.toUpperCase().includes(key));
 if(!col) return "";
 let val = row[col];
-if(!isNaN(val)) return parseFloat(val).toFixed(3);
+if(!isNaN(val)) return parseFloat(val).toFixed(1);
 return val;
 }
 

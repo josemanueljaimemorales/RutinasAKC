@@ -1,9 +1,64 @@
-body{margin:0;font-family:Arial;background:#000;color:#fff;text-align:center}
-.logo{width:120px;margin:20px auto;display:block}
-.button{background:#1e1e1e;margin:10px;padding:18px;border-radius:15px;font-size:18px;cursor:pointer}
-.button:hover{background:#333}
-.table{width:95%;margin:auto;border-collapse:collapse}
-.table th{background:#1f3d1f;padding:10px}
-.table td{padding:8px;border-bottom:1px solid #333}
-.np{font-size:22px;margin:15px;color:#00ff88}
-.back{margin:10px;cursor:pointer}
+
+body{
+margin:0;
+font-family: 'Segoe UI', Arial;
+background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:#fff;
+text-align:center;
+}
+
+.logo{
+width:140px;
+margin:20px auto;
+display:block;
+filter: drop-shadow(0 0 10px #00ffcc);
+}
+
+.button{
+background: linear-gradient(145deg,#1f1f1f,#2c2c2c);
+margin:12px;
+padding:20px;
+border-radius:20px;
+font-size:20px;
+cursor:pointer;
+box-shadow: 5px 5px 15px #000, -3px -3px 10px #444;
+transition: all 0.2s ease;
+}
+
+.button:hover{
+transform: scale(1.05);
+box-shadow: 0 0 15px #00ffcc;
+}
+
+.table{
+width:95%;
+margin:auto;
+border-collapse:collapse;
+background: rgba(0,0,0,0.4);
+border-radius:15px;
+overflow:hidden;
+}
+
+.table th{
+background:#00c6ff;
+color:#000;
+padding:12px;
+}
+
+.table td{
+padding:10px;
+border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+.np{
+font-size:26px;
+margin:15px;
+color:#00ffcc;
+text-shadow:0 0 10px #00ffcc;
+}
+
+.back{
+margin:10px;
+cursor:pointer;
+font-size:20px;
+}
