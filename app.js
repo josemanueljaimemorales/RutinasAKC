@@ -68,9 +68,25 @@ function showRutina(name, aparato){
 const rutina = data.filter(d=>d["ATLETA"]===name && d["APARATO"]===aparato);
 const np = getNP(name, aparato);
 
+// 🔥 CALCULAR DIFICULTAD (suma VD)
+let sumaVD = 0;
+rutina.forEach(r=>{
+let val = parseFloat(r["Valor decimal"]);
+if(!isNaN(val)) sumaVD += val;
+});
+let dificultad = sumaVD > 0 ? sumaVD.toFixed(1) : "";
+
+// 🔥 CALCULAR GRUPOS
+let grupos = "";
+if(!isNaN(np) && sumaVD > 0){
+grupos = (parseFloat(np) - sumaVD - 10).toFixed(1);
+}
+
 let html = `<div class="back" onclick="showAparatos('${name}')">⬅️</div>`;
 html += `<h2>${name} - ${aparato}</h2>`;
 html += `<div class="np">Nota de partida: ${np||"-"}</div>`;
+html += `<div class="np">Dificultad: ${dificultad||"-"}</div>`;
+html += `<div class="np">Grupos: ${grupos||"-"}</div>`;
 
 html += `<table class="table">
 <tr><th>Elemento</th><th>ID</th><th>Grupo</th><th>Valor</th><th>VD</th></tr>`;
