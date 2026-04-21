@@ -68,19 +68,31 @@ function showRutina(name, aparato){
 const rutina = data.filter(d=>d["ATLETA"]===name && d["APARATO"]===aparato);
 const np = getNP(name, aparato);
 
-// 🔥 CALCULAR DIFICULTAD (suma VD)
+// 🔹 SUMA VD
 let sumaVD = 0;
 rutina.forEach(r=>{
 let val = parseFloat(r["Valor decimal"]);
 if(!isNaN(val)) sumaVD += val;
 });
-let dificultad = sumaVD > 0 ? sumaVD.toFixed(1) : "";
 
-// 🔥 CALCULAR GRUPOS
-let grupos = "";
+// 🔹 BASE
+let dificultad = sumaVD;
+let grupos = 0;
+
 if(!isNaN(np) && sumaVD > 0){
-grupos = (parseFloat(np) - sumaVD - 10).toFixed(1);
+grupos = parseFloat(np) - sumaVD - 10;
 }
+
+// 🔥 REGLA FIG (GRUPOS MAX 2.0)
+if(grupos > 2){
+let exceso = grupos - 2;
+grupos = 2;
+dificultad += exceso;
+}
+
+// 🔹 FORMATO FINAL
+dificultad = dificultad ? dificultad.toFixed(1) : "";
+grupos = grupos ? grupos.toFixed(1) : "";
 
 let html = `<div class="back" onclick="showAparatos('${name}')">⬅️</div>`;
 html += `<h2>${name} - ${aparato}</h2>`;
